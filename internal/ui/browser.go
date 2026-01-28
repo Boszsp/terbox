@@ -10,7 +10,7 @@ import (
 
 // Browser represents a browser-like interface with tabs and content panels
 type Browser struct {
-	tabBar    *TabBar
+	tabs      *Tabs
 	panel     *Panel
 	width     int
 	height    int
@@ -19,11 +19,11 @@ type Browser struct {
 
 // NewBrowser creates a new browser with initial tabs
 func NewBrowser(initialTabs []Tab) *Browser {
-	tabBar := NewTabBar(initialTabs)
+	tabs := NewTabs(initialTabs)
 	panel := NewPanel("")
 
 	return &Browser{
-		tabBar:    tabBar,
+		tabs:      tabs,
 		panel:     panel,
 		focusedOn: "tabs",
 	}
@@ -34,19 +34,19 @@ func (b *Browser) SetSize(width, height int) {
 	b.width = width
 	b.height = height
 
-	// Tab bar is 1 line + 1 separator
-	tabBarHeight := 1
+	// Tabs is 1 line + 2 separator lines
+	tabsHeight := 6
 
 	// Panel gets the rest of the space
-	panelHeight := height - tabBarHeight - 2
+	panelHeight := height - tabsHeight
 
-	b.tabBar.SetSize(width, tabBarHeight)
+	b.tabs.SetSize(width)
 	b.panel.SetSize(width, panelHeight)
 }
 
 // Init initializes the browser
 func (b *Browser) Init() tea.Cmd {
-	return tea.Batch(b.tabBar.Init(), b.panel.Init())
+	return tea.Batch(b.tabs.Init(), b.panel.Init())
 }
 
 // Update handles input for the browser
@@ -63,24 +63,24 @@ func (b *Browser) Update(msg tea.Msg) tea.Cmd {
 			return nil
 		case "ctrl+t":
 			// Create a new tab
-			b.tabBar.AddTab(Tab{
-				Title:   fmt.Sprintf("Tab %d", len(b.tabBar.tabs)+1),
+			b.tabs.AddTab(Tab{
+				Title:   fmt.Sprintf("Tab %d", len(b.tabs.GetTabs())+1),
 				Content: "New tab content",
 			})
 			return nil
 		case "ctrl+w":
 			// Close current tab
-			if len(b.tabBar.tabs) > 0 {
-				b.tabBar.RemoveTab(b.tabBar.ActiveIndex())
+			if len(b.tabs.GetTabs()) > 0 {
+				b.tabs.RemoveTab(b.tabs.ActiveIndex())
 			}
 			return nil
 		}
 	}
 
 	if b.focusedOn == "tabs" {
-		b.tabBar.Update(msg)
+		b.tabs.Update(msg)
 		// Update panel content based on active tab
-		activeTab := b.tabBar.ActiveTab()
+		activeTab := b.tabs.ActiveTab()
 		b.panel.SetContent(activeTab.Content)
 	} else {
 		b.panel.Update(msg)
@@ -95,29 +95,33 @@ func (b *Browser) View() string {
 		return ""
 	}
 
-	// Render tab bar
-	tabBarView := b.tabBar.View()
+	// Top separator
+	topSeparator := strings.Repeat("─", b.width)
 
-	// Separator line
-	separator := strings.Repeat("─", b.width)
+	// Render tabs
+	tabsView := b.tabs.View()
+
+	// Apply focus styling to tabs
+	if b.focusedOn == "tabs" {
+		tabsView = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("228")).
+			Render(tabsView)
+	}
+
+	// Bottom separator
+	bottomSeparator := strings.Repeat("─", b.width)
 
 	// Render panel
-	activeTab := b.tabBar.ActiveTab()
+	activeTab := b.tabs.ActiveTab()
 	b.panel.SetContent(activeTab.Content)
 	panelView := b.panel.View()
-
-	// Apply focus styling
-	if b.focusedOn == "tabs" {
-		tabBarView = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("228")).
-			Render(tabBarView)
-	}
 
 	// Combine all parts
 	content := lipgloss.JoinVertical(
 		lipgloss.Top,
-		tabBarView,
-		separator,
+		topSeparator,
+		tabsView,
+		bottomSeparator,
 		panelView,
 	)
 
@@ -126,20 +130,20 @@ func (b *Browser) View() string {
 
 // AddTab adds a new tab to the browser
 func (b *Browser) AddTab(tab Tab) {
-	b.tabBar.AddTab(tab)
+	b.tabs.AddTab(tab)
 }
 
 // RemoveTab removes a tab from the browser
 func (b *Browser) RemoveTab(index int) {
-	b.tabBar.RemoveTab(index)
+	b.tabs.RemoveTab(index)
 }
 
 // GetActiveTabIndex returns the index of the active tab
 func (b *Browser) GetActiveTabIndex() int {
-	return b.tabBar.ActiveIndex()
+	return b.tabs.ActiveIndex()
 }
 
 // UpdateTabContent updates the content of a specific tab
 func (b *Browser) UpdateTabContent(index int, content string) {
-	b.tabBar.UpdateTabContent(index, content)
+	b.tabs.UpdateTabContent(index, content)
 }

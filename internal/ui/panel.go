@@ -14,19 +14,13 @@ type Panel struct {
 	width   int
 	height  int
 	style   lipgloss.Style
-	border  lipgloss.Border
 }
 
 // NewPanel creates a new panel with the given title
 func NewPanel(title string) *Panel {
 	return &Panel{
 		title: title,
-		style: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("63")).
-			BorderStyle(lipgloss.RoundedBorder()).
-			Padding(1).
-			Margin(0),
-		border: lipgloss.RoundedBorder(),
+		style: lipgloss.NewStyle(),
 	}
 }
 
@@ -58,7 +52,7 @@ func (p *Panel) Update(msg tea.Msg) tea.Cmd {
 
 // View renders the panel
 func (p *Panel) View() string {
-	contentHeight := p.height - 4 // account for padding and borders
+	contentHeight := p.height
 	if contentHeight < 1 {
 		contentHeight = 1
 	}
@@ -73,11 +67,5 @@ func (p *Panel) View() string {
 	}
 
 	content := strings.Join(lines, "\n")
-
-	// Apply the border and styling
-	return p.style.
-		Width(p.width - 2).
-		Height(p.height - 2).
-		Border(p.border).
-		Render(p.title + "\n" + content)
+	return content
 }
