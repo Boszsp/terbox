@@ -51,7 +51,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
+		case "ctrl+h":
+			 m.browser.AddTab(
+				ui.Tab{
+					Title: "Help",
+					Content: "This is the help tab.\n\n- Use arrow keys to navigate between tabs.\n- Press Tab to switch focus between tabs and content panel.\n- Press Ctrl+T to open a new tab.\n- Press Ctrl+W to close the current tab.\n- Press q or Ctrl+C to quit the application.",
+				},
+			);
+			return  m, nil
 		}
+		
 		m.browser.Update(msg)
 
 	case tea.MouseMsg:
@@ -65,7 +74,7 @@ func (m model) View() string {
 	if m.width == 0 || m.height == 0 {
 		return "Loading..."
 	}
-	return m.browser.View() + "\n\nPress q or Ctrl+C to quit | Click tabs or h/l to navigate | 1-9: Jump to tab | Ctrl+T: new tab | Ctrl+W: close tab"
+	return m.browser.View() 
 }
 
 func main() {

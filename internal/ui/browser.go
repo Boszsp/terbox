@@ -15,17 +15,24 @@ type Browser struct {
 	width     int
 	height    int
 	focusedOn string // "tabs" or "panel"
+	theme     *Theme
 }
 
-// NewBrowser creates a new browser with initial tabs
+// NewBrowser creates a new browser with initial tabs and default theme
 func NewBrowser(initialTabs []Tab) *Browser {
-	tabs := NewTabs(initialTabs)
+	return NewBrowserWithTheme(initialTabs, DefaultTheme())
+}
+
+// NewBrowserWithTheme creates a new browser with initial tabs and custom theme
+func NewBrowserWithTheme(initialTabs []Tab, theme *Theme) *Browser {
+	tabs := NewTabsWithTheme(initialTabs, theme)
 	panel := NewPanel("")
 
 	return &Browser{
 		tabs:      tabs,
 		panel:     panel,
 		focusedOn: "tabs",
+		theme:     theme,
 	}
 }
 
@@ -97,19 +104,27 @@ func (b *Browser) View() string {
 
 	// Top separator
 	topSeparator := strings.Repeat("─", b.width)
+	if b.theme != nil {
+		topSeparator = lipgloss.NewStyle().
+			Foreground(lipgloss.Color(b.theme.GetSeparatorColor())).
+			Render(topSeparator)
+	}
 
 	// Render tabs
 	tabsView := b.tabs.View()
 
 	// Apply focus styling to tabs
-	if b.focusedOn == "tabs" {
-		tabsView = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("228")).
-			Render(tabsView)
+	if b.focusedOn == "tabs" && b.theme != nil {
+		tabsView = b.theme.GetTabFocusedStyle().Render(tabsView)
 	}
 
 	// Bottom separator
 	bottomSeparator := strings.Repeat("─", b.width)
+	if b.theme != nil {
+		bottomSeparator = lipgloss.NewStyle().
+			Foreground(lipgloss.Color(b.theme.GetSeparatorColor())).
+			Render(bottomSeparator)
+	}
 
 	// Render panel
 	activeTab := b.tabs.ActiveTab()
@@ -146,4 +161,15 @@ func (b *Browser) GetActiveTabIndex() int {
 // UpdateTabContent updates the content of a specific tab
 func (b *Browser) UpdateTabContent(index int, content string) {
 	b.tabs.UpdateTabContent(index, content)
+}
+
+// SetTheme sets the theme for the browser and all its components
+func (b *Browser) SetTheme(theme *Theme) {
+	b.theme = theme
+	b.tabs.SetTheme(theme)
+}
+
+// GetTheme returns the current theme
+func (b *Browser) GetTheme() *Theme {
+	return b.theme
 }

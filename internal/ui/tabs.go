@@ -16,23 +16,40 @@ type Tabs struct {
 	style         lipgloss.Style
 	activeStyle   lipgloss.Style
 	inactiveStyle lipgloss.Style
+	focusedStyle  lipgloss.Style
 	tabPositions  []int // Store the x position of each tab for mouse clicks
+	theme         *Theme
 }
 
-// NewTabs creates a new scrollable tabs component
+// NewTabs creates a new scrollable tabs component with default theme
 func NewTabs(tabs []Tab) *Tabs {
+	return NewTabsWithTheme(tabs, DefaultTheme())
+}
+
+// NewTabsWithTheme creates a new scrollable tabs component with a custom theme
+func NewTabsWithTheme(tabs []Tab, theme *Theme) *Tabs {
 	return &Tabs{
-		tabs:   tabs,
-		active: 0,
-		style:  lipgloss.NewStyle(),
-		activeStyle: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("255")).
-			Background(lipgloss.Color("63")).
-			Padding(0, 1),
-		inactiveStyle: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("240")).
-			Padding(0, 1),
+		tabs:          tabs,
+		active:        0,
+		style:         lipgloss.NewStyle(),
+		activeStyle:   theme.GetTabActiveStyle(),
+		inactiveStyle: theme.GetTabInactiveStyle(),
+		focusedStyle:  theme.GetTabFocusedStyle(),
+		theme:         theme,
 	}
+}
+
+// SetTheme sets the theme for the tabs
+func (t *Tabs) SetTheme(theme *Theme) {
+	t.theme = theme
+	t.activeStyle = theme.GetTabActiveStyle()
+	t.inactiveStyle = theme.GetTabInactiveStyle()
+	t.focusedStyle = theme.GetTabFocusedStyle()
+}
+
+// GetTheme returns the current theme
+func (t *Tabs) GetTheme() *Theme {
+	return t.theme
 }
 
 // SetSize sets the width of the tabs component

@@ -14,13 +14,20 @@ type Panel struct {
 	width   int
 	height  int
 	style   lipgloss.Style
+	theme   *Theme
 }
 
-// NewPanel creates a new panel with the given title
+// NewPanel creates a new panel with the given title and default theme
 func NewPanel(title string) *Panel {
+	return NewPanelWithTheme(title, DefaultTheme())
+}
+
+// NewPanelWithTheme creates a new panel with the given title and custom theme
+func NewPanelWithTheme(title string, theme *Theme) *Panel {
 	return &Panel{
 		title: title,
-		style: lipgloss.NewStyle(),
+		style: theme.GetPanelStyle(),
+		theme: theme,
 	}
 }
 
@@ -68,4 +75,15 @@ func (p *Panel) View() string {
 
 	content := strings.Join(lines, "\n")
 	return content
+}
+
+// SetTheme sets the theme for the panel
+func (p *Panel) SetTheme(theme *Theme) {
+	p.theme = theme
+	p.style = theme.GetPanelStyle()
+}
+
+// GetTheme returns the current theme
+func (p *Panel) GetTheme() *Theme {
+	return p.theme
 }
