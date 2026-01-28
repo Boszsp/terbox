@@ -6,6 +6,7 @@ A terminal-based browser UI written in Go using Bubble Tea with scrollable tabs 
 
 - **Scrollable Horizontal Tabs** - Tabs automatically scroll when they exceed available width
 - **Themeable UI** - Easy-to-customize color schemes for the entire application
+- **Interactive Terminal** - Use the content area as an interactive terminal with input/output
 - **Keyboard Navigation** - Navigate tabs and content with keyboard shortcuts
 - **Mouse Support** - Click on tabs to navigate
 - **Tab Management** - Create and close tabs dynamically
@@ -54,6 +55,54 @@ Available built-in themes:
 - `DarkTheme()` - Dark background with bright text
 - `LightTheme()` - Light background with dark text
 
+## Terminal Component
+
+Use the interactive terminal component in the content area:
+
+```go
+package main
+
+import (
+	"terbox/internal/ui"
+	tea "github.com/charmbracelet/bubbletea"
+)
+
+func main() {
+	// Create an interactive terminal
+	terminal := ui.NewTerminal()
+	
+	// With a custom theme
+	terminal := ui.NewTerminalWithTheme(ui.DarkTheme())
+	
+	// Write output to terminal
+	terminal.WriteOutput("Hello, World!")
+	
+	// Get user input
+	input := terminal.GetInputBuffer()
+	
+	// Clear terminal
+	terminal.ClearContent()
+	
+	// Get all history
+	history := terminal.GetHistory()
+}
+```
+
+### Terminal Features
+
+- **Input Buffer** - Type commands with visual feedback
+- **History Scrolling** - Scroll up/down through previous output (↑ / ↓)
+- **Output Display** - Write text output to the terminal
+- **Line Management** - Configurable maximum lines to keep in memory
+- **Clear Command** - Clear all content
+
+### Terminal Keyboard Shortcuts
+
+- **Regular Keys** - Type input
+- **Backspace** - Delete last character
+- **Enter** - Execute command
+- **↑ / ↓** - Scroll through history
+
 ## Keyboard Shortcuts
 
 - `h` / `←` - Previous tab
@@ -62,4 +111,5 @@ Available built-in themes:
 - `Tab` - Switch focus between tabs and content
 - `Ctrl+T` - Create a new tab
 - `Ctrl+W` - Close current tab
+- `Ctrl+L` - Toggle between panel and terminal modes (in content area)
 - `q` / `Ctrl+C` - Quit

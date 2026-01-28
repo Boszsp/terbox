@@ -57,6 +57,28 @@ func (p *Panel) Update(msg tea.Msg) tea.Cmd {
 	return nil
 }
 
+// AppendLine appends a line to the panel content
+func (p *Panel) AppendLine(line string) {
+	if p.content == "" {
+		p.content = line
+	} else {
+		p.content = p.content + "\n" + line
+	}
+
+	// Keep only last N lines to avoid memory issues
+	lines := strings.Split(p.content, "\n")
+	maxLines := 1000
+	if len(lines) > maxLines {
+		lines = lines[len(lines)-maxLines:]
+		p.content = strings.Join(lines, "\n")
+	}
+}
+
+// ClearContent clears all panel content
+func (p *Panel) ClearContent() {
+	p.content = ""
+}
+
 // View renders the panel
 func (p *Panel) View() string {
 	contentHeight := p.height

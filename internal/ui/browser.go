@@ -10,12 +10,14 @@ import (
 
 // Browser represents a browser-like interface with tabs and content panels
 type Browser struct {
-	tabs      *Tabs
-	panel     *Panel
-	width     int
-	height    int
-	focusedOn string // "tabs" or "panel"
-	theme     *Theme
+	tabs        *Tabs
+	panel       *Panel
+	terminal    *Terminal
+	width       int
+	height      int
+	focusedOn   string // "tabs" or "content"
+	contentMode string // "panel" or "terminal"
+	theme       *Theme
 }
 
 // NewBrowser creates a new browser with initial tabs and default theme
@@ -27,12 +29,15 @@ func NewBrowser(initialTabs []Tab) *Browser {
 func NewBrowserWithTheme(initialTabs []Tab, theme *Theme) *Browser {
 	tabs := NewTabsWithTheme(initialTabs, theme)
 	panel := NewPanel("")
+	terminal := NewTerminalWithTheme(theme)
 
 	return &Browser{
-		tabs:      tabs,
-		panel:     panel,
-		focusedOn: "tabs",
-		theme:     theme,
+		tabs:        tabs,
+		panel:       panel,
+		terminal:    terminal,
+		focusedOn:   "tabs",
+		contentMode: "panel",
+		theme:       theme,
 	}
 }
 
@@ -44,16 +49,17 @@ func (b *Browser) SetSize(width, height int) {
 	// Tabs is 1 line + 2 separator lines
 	tabsHeight := 6
 
-	// Panel gets the rest of the space
-	panelHeight := height - tabsHeight
+	// Content area gets the rest of the space
+	contentHeight := height - tabsHeight
 
 	b.tabs.SetSize(width)
-	b.panel.SetSize(width, panelHeight)
+	b.panel.SetSize(width, contentHeight)
+	b.terminal.SetSize(width, contentHeight)
 }
 
 // Init initializes the browser
 func (b *Browser) Init() tea.Cmd {
-	return tea.Batch(b.tabs.Init(), b.panel.Init())
+	return tea.Batch(b.tabs.Init(), b.panel.Init(), b.terminal.Init())
 }
 
 // Update handles input for the browser
@@ -81,6 +87,14 @@ func (b *Browser) Update(msg tea.Msg) tea.Cmd {
 				b.tabs.RemoveTab(b.tabs.ActiveIndex())
 			}
 			return nil
+		case "ctrl+l":
+			// Toggle between panel and terminal modes
+			if b.contentMode == "panel" {
+				b.contentMode = "terminal"
+			} else {
+				b.contentMode = "panel"
+			}
+			return nil
 		}
 	}
 
@@ -90,7 +104,12 @@ func (b *Browser) Update(msg tea.Msg) tea.Cmd {
 		activeTab := b.tabs.ActiveTab()
 		b.panel.SetContent(activeTab.Content)
 	} else {
-		b.panel.Update(msg)
+		// Content area is focused
+		if b.contentMode == "panel" {
+			b.panel.Update(msg)
+		} else {
+			b.terminal.Update(msg)
+		}
 	}
 
 	return nil
@@ -126,10 +145,15 @@ func (b *Browser) View() string {
 			Render(bottomSeparator)
 	}
 
-	// Render panel
-	activeTab := b.tabs.ActiveTab()
-	b.panel.SetContent(activeTab.Content)
-	panelView := b.panel.View()
+	// Render content (panel or terminal)
+	var contentView string
+	if b.contentMode == "panel" {
+		activeTab := b.tabs.ActiveTab()
+		b.panel.SetContent(activeTab.Content)
+		contentView = b.panel.View()
+	} else {
+		contentView = b.terminal.View()
+	}
 
 	// Combine all parts
 	content := lipgloss.JoinVertical(
@@ -137,7 +161,7 @@ func (b *Browser) View() string {
 		topSeparator,
 		tabsView,
 		bottomSeparator,
-		panelView,
+		contentView,
 	)
 
 	return content
@@ -167,9 +191,33 @@ func (b *Browser) UpdateTabContent(index int, content string) {
 func (b *Browser) SetTheme(theme *Theme) {
 	b.theme = theme
 	b.tabs.SetTheme(theme)
+	b.panel.SetTheme(theme)
+	b.terminal.SetTheme(theme)
 }
 
 // GetTheme returns the current theme
 func (b *Browser) GetTheme() *Theme {
 	return b.theme
+}
+
+// SetContentMode sets the content display mode ("panel" or "terminal")
+func (b *Browser) SetContentMode(mode string) {
+	if mode == "panel" || mode == "terminal" {
+		b.contentMode = mode
+	}
+}
+
+// GetContentMode returns the current content mode
+func (b *Browser) GetContentMode() string {
+	return b.contentMode
+}
+
+// GetTerminal returns the terminal component
+func (b *Browser) GetTerminal() *Terminal {
+	return b.terminal
+}
+
+// GetPanel returns the panel component
+func (b *Browser) GetPanel() *Panel {
+	return b.panel
 }
