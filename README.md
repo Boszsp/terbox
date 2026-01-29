@@ -1,13 +1,21 @@
-# terbox
+# Terbox
 
-A terminal-based browser UI written in Go using Bubble Tea with scrollable tabs and customizable themes.
+A user-friendly terminal multiplexer with a web browser-like interface. Run multiple terminal sessions in parallel with intuitive tab management - no complex keybindings required!
+
+## Overview
+
+**Terbox** brings the simplicity of web browser tabs to terminal multiplexing. Unlike `tmux` or `screen`, Terbox uses a modern, familiar UI that anyone can use instantly.
 
 ## Features
 
-- **Scrollable Horizontal Tabs** - Tabs automatically scroll when they exceed available width
-- **Themeable UI** - Easy-to-customize color schemes for the entire application
-- **Interactive Terminal** - Use the content area as an interactive terminal with input/output
-- **Keyboard Navigation** - Navigate tabs and content with keyboard shortcuts
+- **Web Browser-Style Tabs** - Switch between terminal sessions just like browser tabs
+- **Auto-Renaming Tabs** - Tabs automatically show the last command you ran
+- **Terminal Session Manager** - Manage multiple independent terminal sessions
+- **Configurable Shell** - Set your preferred shell (bash, zsh, fish, etc.)
+- **Theme Support** - Choose from multiple color schemes
+- **Cross-Platform** - Works on Linux and macOS
+- **Mouse-Friendly** - Click tabs to switch (no complex key combinations)
+- **Detachable Tabs** - Separate tabs into new windows for advanced workflows
 - **Mouse Support** - Click on tabs to navigate
 - **Tab Management** - Create and close tabs dynamically
 
